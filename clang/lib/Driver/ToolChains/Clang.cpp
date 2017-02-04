@@ -5729,6 +5729,14 @@ void Clang::ConstructJob(Compilation &C, const JobAction &JA,
   if (!StatsFile.empty())
     CmdArgs.push_back(Args.MakeArgString(Twine("-stats-file=") + StatsFile));
 
+
+  // push the flag to the backend
+  if (Args.hasArg(options::OPT_fatomicize))
+  {
+    CmdArgs.push_back("-mllvm");
+    CmdArgs.push_back("-atomicize");
+  }
+
   // Forward -Xclang arguments to -cc1, and -mllvm arguments to the LLVM option
   // parser.
   // -finclude-default-header flag is for preprocessor,
