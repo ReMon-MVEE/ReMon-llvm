@@ -20,27 +20,28 @@ Please keep in mind that:
 ### Getting the source code
 
 Set your llvm tree up as follows:
-```git clone git@github.com:stijn-volckaert/ReMon-llvm.git llvm
-
+```
+git clone git@github.com:stijn-volckaert/ReMon-llvm.git llvm
 git clone git@github.com:stijn-volckaert/ReMon-clang.git llvm/projects/clang
-
-git clone git@github.com:stijn-volckaert/ReMon-compiler-rt.git llvm/projects/compiler-rt```
+git clone git@github.com:stijn-volckaert/ReMon-compiler-rt.git llvm/projects/compiler-rt
+```
 
 ### Building the compiler
 
-```mkdir -p llvm/build-tree && cd llvm/build-tree
-
+```
+mkdir -p llvm/build-tree && cd llvm/build-tree
 cmake -DCMAKE_BUILD_TYPE=Release -DLLVM_TARGETS_TO_BUILD=X86 ..
-
-make -j 8```
+make -j 8
+```
 
 ## Using the compiler
 
 It is fairly straightforward. Just pass `-fatomicize` as a linker and compiler flag. To build nginx, for example, you would do:
 
-```./configure --with-threads --with-cc=/path/to/llvm/build-tree/bin/clang --with-cc-opt="-fatomicize" --with-ld-opt="-fatomicize"
-
-make -j 4```
+```
+./configure --with-threads --with-cc=/path/to/llvm/build-tree/bin/clang --with-cc-opt="-fatomicize" --with-ld-opt="-fatomicize"
+make -j 4
+```
 
 Keep in mind that the resulting binary will be linked to libclang_rt.sync-<arch>.so. 
 If you want to run the binary outside ReMon, you'll have to make sure that it's in your LD_LIBRARY_PATH.
