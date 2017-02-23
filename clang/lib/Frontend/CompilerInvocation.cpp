@@ -2541,6 +2541,9 @@ static void ParseLangArgs(LangOptions &Opts, ArgList &Args, InputKind IK,
 
   Opts.Digraphs = Args.hasFlag(OPT_fdigraphs, OPT_fno_digraphs, Opts.Digraphs);
 
+  if (Args.hasArg(OPT_fatomicize))
+      Opts.Atomicize = true;
+
   if (Args.hasArg(OPT_fno_operator_names))
     Opts.CXXOperatorNames = 0;
 
