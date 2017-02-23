@@ -2881,6 +2881,13 @@ QualType ASTContext::getAddrSpaceQualType(QualType T,
   return getExtQualType(TypeNode, Quals);
 }
 
+QualType ASTContext::getNonSyncQualType(QualType T) const {
+  QualifierCollector Quals;
+  const Type *TypeNode = Quals.strip(T);
+  Quals.setNonSync();
+  return getExtQualType(TypeNode, Quals);
+}
+
 QualType ASTContext::removeAddrSpaceQualType(QualType T) const {
   // If we are composing extended qualifiers together, merge together
   // into one ExtQuals node.

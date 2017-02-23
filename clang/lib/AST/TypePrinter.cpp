@@ -1524,6 +1524,9 @@ void TypePrinter::printAttributedAfter(const AttributedType *T,
   case attr::NSReturnsRetained:
     OS << "ns_returns_retained";
     break;
+  case attr::NonSync:
+	OS << "NonSync";
+	break;
 
   // FIXME: When Sema learns to form this AttributedType, avoid printing the
   // attribute again in printFunctionProtoAfter.

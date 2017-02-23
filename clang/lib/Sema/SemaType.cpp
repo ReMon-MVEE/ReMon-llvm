@@ -28,6 +28,7 @@
 #include "clang/Sema/DeclSpec.h"
 #include "clang/Sema/DelayedDiagnostic.h"
 #include "clang/Sema/Lookup.h"
+#include "clang/Sema/ParsedAttr.h"
 #include "clang/Sema/ParsedTemplate.h"
 #include "clang/Sema/ScopeInfo.h"
 #include "clang/Sema/SemaInternal.h"
@@ -7670,6 +7671,13 @@ static void processTypeAttrs(TypeProcessingState &state, QualType &type,
       HandleAddressSpaceTypeAttribute(type, attr, state);
       attr.setUsedAsTypeAttr();
       break;
+	case ParsedAttr::AT_NonSync:
+		//llvm::errs() << "Saw NonSync qualified type:\n ";
+		//type.dump();
+		type = state.getSema().Context.getNonSyncQualType(type);
+		//llvm::errs() << "New Type: " << type.
+		attr.setUsedAsTypeAttr();
+		break;
     OBJC_POINTER_TYPE_ATTRS_CASELIST:
       if (!handleObjCPointerTypeAttr(state, attr, type))
         distributeObjCPointerTypeAttr(state, attr, type);

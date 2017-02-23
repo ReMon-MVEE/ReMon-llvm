@@ -1141,6 +1141,8 @@ public:
   /// replaced.
   QualType getAddrSpaceQualType(QualType T, LangAS AddressSpace) const;
 
+  QualType getNonSyncQualType(QualType T) const;
+
   /// Remove any existing address space on the type and returns the type
   /// with qualifiers intact (or that's the idea anyway)
   ///

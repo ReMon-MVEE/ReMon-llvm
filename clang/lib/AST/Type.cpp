@@ -64,6 +64,9 @@ bool Qualifiers::isStrictSupersetOf(Qualifiers Other) const {
     // Address space superset.
     ((getAddressSpace() == Other.getAddressSpace()) ||
      (hasAddressSpace()&& !Other.hasAddressSpace())) &&
+    // NonSync superset.
+    ((hasNonSync() == Other.hasNonSync()) ||
+     (hasNonSync() && !Other.hasNonSync())) &&
     // Lifetime qualifier superset.
     ((getObjCLifetime() == Other.getObjCLifetime()) ||
      (hasObjCLifetime() && !Other.hasObjCLifetime()));
@@ -3337,6 +3340,7 @@ bool AttributedType::isQualifier() const {
   case attr::TypeNullUnspecified:
   case attr::LifetimeBound:
   case attr::AddressSpace:
+  case attr::NonSync:
     return true;
 
   // All other type attributes aren't qualifiers; they rewrite the modified
