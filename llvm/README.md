@@ -4,8 +4,8 @@
 This repository hosts the LLVM part of the ReMon atomicize compiler.
 
 This compiler does three things:
-- It refuses to compile code that discards the `_Atomic` type-qualifier through type casts.
-- It refuses to compile code that uses `_Atomic` variables in inline assembly.
+- It refuses to compile code that discards the `_Atomic` or `volatile` type-qualifier through pointer type casts.
+- It refuses to compile code that uses `_Atomic` or `volatile` variables in inline assembly.
 - It can instrument atomic operations by adding a call to `mvee_atomic_preop` before and a call to `mvee_atomic_postop` after every atomic instruction.
 - It can link binaries to libclang_rt.sync-<arch>.so. This library implements the preop/postop interface.
 
@@ -13,16 +13,14 @@ This compiler does three things:
 
 ### Disclaimer
 
-Please keep in mind that:
-- This compiler has only been tested on Ubuntu 14.04!
-- You should ***NOT*** use this compiler as a replacement for your system compiler as it is ***NOT*** C-compliant. It will, for example, refuse to compile code that casts a pointer to an `_Atomic` variable to `void*` even though this is explicitly allowed by the C standard.
+Please keep in mind that this compiler has only been tested on Ubuntu 14.04!
 
 ### Getting the source code
 
 Set your llvm tree up as follows:
 ```
 git clone git@github.com:stijn-volckaert/ReMon-llvm.git llvm
-git clone git@github.com:stijn-volckaert/ReMon-clang.git llvm/projects/clang
+git clone git@github.com:stijn-volckaert/ReMon-clang.git llvm/tools/clang
 git clone git@github.com:stijn-volckaert/ReMon-compiler-rt.git llvm/projects/compiler-rt
 ```
 

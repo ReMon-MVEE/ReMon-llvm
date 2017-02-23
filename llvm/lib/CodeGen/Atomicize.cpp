@@ -130,7 +130,7 @@ namespace
 
 		void visitLoadInst (LoadInst& I)
 			{
-				if (I.isAtomic())
+				if (I.isAtomic() || I.isVolatile())
 				{
 					Atomic->dumpSourceLine("Wrapping unprotected load",
 										   I.getDebugLoc().get());
@@ -141,7 +141,7 @@ namespace
 
 		void visitStoreInst (StoreInst& I)
 			{
-				if (I.isAtomic())
+				if (I.isAtomic() || I.isVolatile())
 				{
 					Atomic->dumpSourceLine("Wrapping unprotected store",
 										   I.getDebugLoc().get());
@@ -149,25 +149,6 @@ namespace
 					NumAtomicType3++;
 				}
 			}
-/*
-		void visitGetElementPtrInst (GetElementPtrInst& I)
-			{
-				if (1)
-					wrapInst<GetElementPtrInst>(I);
-			}
-
-		void visitVAArgInst (VAArgInst& I)
-			{
-				if (1)
-					wrapInst<VAArgInst>(I);
-			}
-
-		void visitPtrToIntInst (PtrToIntInst& I)
-			{
-				if (1)
-					wrapInst<PtrToIntInst>(I);
-			}
-*/
 
 	private:
 		Atomicize* Atomic;
