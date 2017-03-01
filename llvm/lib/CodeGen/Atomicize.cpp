@@ -204,8 +204,9 @@ namespace
 
 		// Build full filename
 		std::stringstream sourceFile;
-		sourceFile << debugLoc->getScope()->getDirectory().data() << "/" <<
-			debugLoc->getScope()->getFilename().data();
+		if (debugLoc->getScope()->getFilename().data()[0] != '/')
+			sourceFile << debugLoc->getScope()->getDirectory().data() << "/";
+		sourceFile << debugLoc->getScope()->getFilename().data();
 
 		errs() << reason << " @ " << sourceFile.str() << " [line: " << debugLoc->getLine() << ", column: " << debugLoc->getColumn() << "]\n";
 
