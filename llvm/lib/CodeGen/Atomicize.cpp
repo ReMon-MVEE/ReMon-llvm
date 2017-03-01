@@ -150,6 +150,22 @@ namespace
 				}
 			}
 
+		void visitCallInst(CallInst& I)
+			{
+				if (I.isInlineAsm())
+				{
+					InlineAsm* Asm = dyn_cast<InlineAsm>(I.getCalledValue());
+					if (Asm && Asm->haveAtomicOperand())
+					{
+						Value* V = I.getArgOperand(Asm->getAtomicOperand());
+					
+						Atomic->dumpSourceLine("Wrapping inline assembly block",
+											   I.getDebugLoc().get());
+						wrapInstInternal(I, V, true);
+					}
+				}
+			}
+
 	private:
 		Atomicize* Atomic;
 	};
@@ -177,11 +193,14 @@ namespace
 
 		NumAtomicTotal = NumAtomicType1 + NumAtomicType2 + NumAtomicType3;		
 		errs().changeColor(raw_ostream::YELLOW);
-		errs() << "All Done! Found atomics [type1, type2, type3, tot]: ["
+		errs() << "All Done!";
+		if (NumAtomicTotal)
+			errs() << " Found atomics [type1, type2, type3, tot]: ["
 			   << NumAtomicType1 << ", "
 			   << NumAtomicType2 << ", "
 			   << NumAtomicType3 << ", "
-			   << NumAtomicTotal << "]\n";
+			   << NumAtomicTotal << "]";
+		errs() << "\n";
 		errs().resetColor();
 
 		return true;
