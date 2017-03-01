@@ -246,8 +246,8 @@ namespace
 			std::replace(sourceLine.begin(), sourceLine.end(), '\t', ' ');
 
 			errs() << sourceLine << "\n";
-			errs().indent(debugLoc->getColumn());
-			errs() << "^\n";
+			errs().indent(debugLoc->getColumn()-1);
+			errs() << "^~~~~\n";
 		}
 #endif
 	}
