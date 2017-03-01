@@ -130,7 +130,7 @@ namespace
 
 		void visitLoadInst (LoadInst& I)
 			{
-				if (I.isAtomic() || I.isVolatile())
+				if (I.isAtomic() /* || I.isVolatile() */)
 				{
 					Atomic->dumpSourceLine("Wrapping unprotected load",
 										   I.getDebugLoc().get());
@@ -141,7 +141,7 @@ namespace
 
 		void visitStoreInst (StoreInst& I)
 			{
-				if (I.isAtomic() || I.isVolatile())
+				if (I.isAtomic() /* || I.isVolatile() */)
 				{
 					Atomic->dumpSourceLine("Wrapping unprotected store",
 										   I.getDebugLoc().get());
