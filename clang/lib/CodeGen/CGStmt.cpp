@@ -2298,8 +2298,10 @@ void CodeGenFunction::EmitAsmStmt(const AsmStmt &S) {
 			  expr = S.getInputExpr(i-Outputs);
 
 		  if ((expr->getType()->isPointerType() &&
-			   expr->getType()->getPointeeType()->isAtomicType()) ||
-			  expr->getType()->isAtomicType())
+               (expr->getType()->getPointeeType()->isAtomicType() ||
+                   expr->getType()->getPointeeType().isVolatileQualified())) ||
+          (expr->getType()->isAtomicType() ||
+              expr->getType().isVolatileQualified()))
 		  {
 			  IA->setAtomicOperand(i);
 		  }
