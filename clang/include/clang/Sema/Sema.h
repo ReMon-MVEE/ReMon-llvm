@@ -371,6 +371,7 @@ class Sema final {
   void setupImplicitSpecialMemberType(CXXMethodDecl *SpecialMem,
                                       QualType ResultTy,
                                       ArrayRef<QualType> Args);
+  bool AtomicizeArgQualified(Expr* Ptr, QualType PointeeType, SourceLocation CallLoc, unsigned int DiagCode);
 
 public:
   typedef OpaquePtr<DeclGroupRef> DeclGroupPtrTy;
