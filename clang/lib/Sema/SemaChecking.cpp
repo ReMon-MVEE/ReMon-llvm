@@ -4638,8 +4638,8 @@ bool Sema::AtomicizeArgQualified(Expr* Ptr, QualType PointeeType, SourceLocation
 {
   if (getLangOpts().Atomicize)
   {
-	  while (dyn_cast<PointerType>(PointeeType))
-		  PointeeType = dyn_cast<PointerType>(PointeeType)->getPointeeType();
+//	  while (dyn_cast<PointerType>(PointeeType))
+//		  PointeeType = dyn_cast<PointerType>(PointeeType)->getPointeeType();
 
     if (!PointeeType.isVolatileQualified() && !PointeeType->isAtomicType())
     {
