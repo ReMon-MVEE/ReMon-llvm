@@ -2012,6 +2012,8 @@ void CodeGenFunction::EmitAsmStmt(const AsmStmt &S) {
   // Keep track of out constraints for tied input operand.
   std::vector<std::string> OutputConstraints;
 
+  std::map<const Expr*, size_t> ExprToIndexMap;
+
   // An inline asm can be marked readonly if it meets the following conditions:
   //  - it doesn't have any sideeffects
   //  - it doesn't clobber memory
@@ -2099,6 +2101,7 @@ void CodeGenFunction::EmitAsmStmt(const AsmStmt &S) {
       Constraints += "=*";
       Constraints += OutputConstraint;
       ReadOnly = ReadNone = false;
+      ExprToIndexMap.insert(std::make_pair(OutExpr, Args.size()-1));
     }
 
     if (Info.isReadWrite()) {
@@ -2209,6 +2212,7 @@ void CodeGenFunction::EmitAsmStmt(const AsmStmt &S) {
     ArgTypes.push_back(Arg->getType());
     Args.push_back(Arg);
     Constraints += InputConstraint;
+    ExprToIndexMap.insert(std::make_pair(InputExpr, Args.size()-1));
   }
 
   // Append the "input" part of inout constraints last.
@@ -2287,10 +2291,12 @@ void CodeGenFunction::EmitAsmStmt(const AsmStmt &S) {
   if (getLangOpts().Atomicize)
   {
 	  const Expr* expr = nullptr;
-	  unsigned TotalArgs = S.getNumOutputs() + S.getNumInputs();
-	  unsigned Outputs   = S.getNumOutputs();
+    unsigned Outputs   = S.getNumOutputs();
+	  unsigned Inputs    = S.getNumInputs();
 
-	  for (unsigned i = 0; i != TotalArgs; ++i)
+    // Outputs first, then inputs, then inoutargs
+    // There's not guarantee that all outputs appear in the list, however
+	  for (unsigned i = 0; i != Inputs+Outputs; ++i)
 	  {
 		  if (i < Outputs)
 			  expr = S.getOutputExpr(i);
@@ -2303,7 +2309,12 @@ void CodeGenFunction::EmitAsmStmt(const AsmStmt &S) {
           (expr->getType()->isAtomicType() ||
               expr->getType().isVolatileQualified()))
 		  {
-			  IA->setAtomicOperand(i);
+        auto IndexIt = ExprToIndexMap.find(expr);
+        unsigned realIdx = i;
+        if (IndexIt != ExprToIndexMap.end())
+          realIdx = IndexIt->second;
+
+			  IA->setAtomicOperand(realIdx);
 		  }
 	  }
   }
