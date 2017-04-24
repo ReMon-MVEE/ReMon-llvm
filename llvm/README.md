@@ -33,9 +33,9 @@ Please keep in mind that this compiler has only been tested on Ubuntu 14.04!
 
 Set your llvm tree up as follows:
 ```
-git clone git@github.com:securesystemslab/ReMon-llvm.git llvm
-git clone git@github.com:securesystemslab/ReMon-clang.git llvm/tools/clang
-git clone git@github.com:securesystemslab/ReMon-compiler-rt.git llvm/projects/compiler-rt
+git clone https://github.com/stijn-volckaert/ReMon-llvm.git llvm
+git clone https://github.com/stijn-volckaert/ReMon-clang.git llvm/tools/clang
+git clone https://github.com/stijn-volckaert/ReMon-compiler-rt.git llvm/projects/compiler-rt
 ```
 
 ### Building the compiler
@@ -74,4 +74,3 @@ If you want to run the binary in ReMon, you don't have to touch the LD_LIBRARY_P
 [Taming Parallelism in a Multi-Variant Execution Environment](http://ics.uci.edu/~stijnv/Papers/eurosys17-parallelism.pdf)
 Stijn Volckaert, Bart Coppens, Bjorn De Sutter, Koen De Bosschere, Per Larsen, and Michael Franz.
 In 12th European Conference on Computer Systems (EuroSys'17). ACM, 2017.
-To appear.
