@@ -3,13 +3,14 @@
 //
 
 #include "llvm/IR/PassManager.h"
-#include "llvm/IR/TypeBuilder.h"
 #include "llvm/IR/InstVisitor.h"
+#include "llvm/InitializePasses.h"
+#include "llvm/Support/CommandLine.h"
 #include "llvm/Support/raw_ostream.h"
 #include "llvm/IR/IRBuilder.h"
 #include "llvm/IR/DataLayout.h"
 #include "llvm/IR/DerivedTypes.h"
-#include "llvm/IR/TypeBuilder.h"
+#include "llvm/IR/Type.h"
 #include "llvm/IR/DebugInfoMetadata.h"
 #include "llvm/IR/InlineAsm.h"
 #include "llvm/ADT/Statistic.h"
@@ -80,7 +81,7 @@ namespace
 				IRBuilder<> B(&I);
 
 				// possibly insert bitcast to cast the pointer to unsigned long*
-				Type* ptrType = TypeBuilder<unsigned long*, false>::get(Atomic->module->getContext());
+				Type* ptrType = Type::getInt64PtrTy(Atomic->module->getContext());
 
 				if (Ptr->getType() != ptrType)
 					Ptr = B.CreateBitCast(Ptr, ptrType);
@@ -176,12 +177,15 @@ namespace
 			return false;
 		
 		module = &M;
+		auto& Context = M.getContext();
 
 		// unsigned char mvee_atomic_preop  (unsigned short operation_type, unsigned long* affected_location)
 		// void          mvee_atomic_postop (unsigned char  preop_result)
-		PreopType = TypeBuilder<unsigned char(unsigned short, unsigned long*), false>::get(M.getContext());
+		PreopType = FunctionType::get(Type::getInt8Ty(Context),
+                                      {Type::getInt16Ty(Context), Type::getInt64PtrTy(Context)}, false);
 		PreopFunc = Function::Create(PreopType, GlobalValue::LinkageTypes::ExternalLinkage, "mvee_atomic_preop_trampoline", &M);
-		PostopType = TypeBuilder<void(unsigned char), false>::get(M.getContext());
+		PostopType = FunctionType::get(Type::getVoidTy(Context),
+                                       {Type::getInt8Ty(Context)}, false);
 		PostopFunc = Function::Create(PostopType, GlobalValue::LinkageTypes::ExternalLinkage, "mvee_atomic_postop_trampoline", &M);
 
 		errs().changeColor(raw_ostream::GREEN);
