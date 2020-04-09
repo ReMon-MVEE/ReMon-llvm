@@ -4921,7 +4921,7 @@ ExprResult Sema::BuildAtomicExpr(SourceRange CallRange, SourceRange ExprRange,
   }
 
   // In -fatomicize mode, require the first arg to be volatile or atomic qualified
-  if (!AtomicizeArgQualified(Ptr, AtomTy, TheCall->getExprLoc(), diag::err_atomic_call_requires_volatile))
+  if (!AtomicizeArgQualified(Ptr, AtomTy, ExprRange.getBegin(), diag::err_atomic_call_requires_volatile))
     return ExprError();
 
   switch (ValType.getObjCLifetime()) {
@@ -10262,7 +10262,7 @@ static const Expr* ResolveAddr(const Expr *E)
 
     case Stmt::MaterializeTemporaryExprClass:
       if (const Expr *Result =
-          ResolveAddr(cast<MaterializeTemporaryExpr>(E)->GetTemporaryExpr()))
+          ResolveAddr(cast<MaterializeTemporaryExpr>(E)->getSubExpr()))
         return Result;
       return E;
 
@@ -10354,7 +10354,7 @@ static const Expr *ResolveVal(const Expr *E)
 
       case Stmt::MaterializeTemporaryExprClass:
         if (const Expr *Result =
-            ResolveVal(cast<MaterializeTemporaryExpr>(E)->GetTemporaryExpr()))
+            ResolveVal(cast<MaterializeTemporaryExpr>(E)->getSubExpr()))
           return Result;
         return E;
 

@@ -281,7 +281,7 @@ StmtResult Sema::ActOnGCCAsmStmt(SourceLocation AsmLoc, bool IsSimple,
       hasControlFlow = true;
 
     if (isAtomic && hasControlFlow)
-      return StmtError(Diag(expr->getLocStart(), diag::err_asm_atomic_op_has_control_flow));
+      return StmtError(Diag(expr->getBeginLoc(), diag::err_asm_atomic_op_has_control_flow));
 
 	  for (unsigned i = 0; i != NumOutputs + NumInputs; ++i)
 	  {
@@ -317,14 +317,14 @@ StmtResult Sema::ActOnGCCAsmStmt(SourceLocation AsmLoc, bool IsSimple,
 
         if (qualifiedExprs.size() > 1)
         {
-          return StmtError(Diag(expr->getLocStart(),
+          return StmtError(Diag(expr->getBeginLoc(),
                                 diag::err_asm_atomic_operand));
         }
       }
 	  }
 
     if (isAtomic && haveMemoryOperands && qualifiedExprs.size() != 1)
-      return StmtError(Diag(expr->getLocStart(), diag::err_asm_atomic_op_has_no_atomic_operands));
+      return StmtError(Diag(expr->getBeginLoc(), diag::err_asm_atomic_op_has_no_atomic_operands));
   }
 
 
