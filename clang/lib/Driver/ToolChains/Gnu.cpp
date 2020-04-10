@@ -529,7 +529,7 @@ void tools::gnutools::Linker::ConstructJob(Compilation &C, const JobAction &JA,
   if (Args.hasArg(options::OPT_fatomicize))
   {
     CmdArgs.push_back("--as-needed");
-    CmdArgs.push_back(ToolChain.getCompilerRTArgString(Args, "sync"));
+    CmdArgs.push_back(ToolChain.getCompilerRTArgString(Args, "sync", ToolChain::FileType::FT_Shared));
     CmdArgs.push_back("--no-as-needed");
   }
 
