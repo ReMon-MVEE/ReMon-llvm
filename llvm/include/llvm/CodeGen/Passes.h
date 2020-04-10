@@ -466,6 +466,8 @@ namespace llvm {
   /// Create IR Type Promotion pass. \see TypePromotion.cpp
   FunctionPass *createTypePromotionPass();
 
+  // Atomicize pass for GHUMVEE
+  ModulePass *createAtomicizePass();
 } // End llvm namespace
 
 #endif

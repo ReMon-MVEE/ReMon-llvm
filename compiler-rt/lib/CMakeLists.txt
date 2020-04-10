@@ -59,3 +59,7 @@ endif()
 if(COMPILER_RT_BUILD_LIBFUZZER)
   compiler_rt_build_runtime(fuzzer)
 endif()
+
+if (COMPILER_RT_BUILD_SYNC)
+  compiler_rt_build_runtime(sync)
+endif()

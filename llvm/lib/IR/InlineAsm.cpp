@@ -33,7 +33,7 @@ InlineAsm::InlineAsm(FunctionType *FTy, const std::string &asmString,
     : Value(PointerType::getUnqual(FTy), Value::InlineAsmVal),
       AsmString(asmString), Constraints(constraints), FTy(FTy),
       HasSideEffects(hasSideEffects), IsAlignStack(isAlignStack),
-      Dialect(asmDialect) {
+      Dialect(asmDialect), HaveAtomicOperand(false), AtomicOperand(0) {
   // Do various checks on the constraint string and type.
   assert(Verify(getFunctionType(), constraints) &&
          "Function type not legal for constraints!");
