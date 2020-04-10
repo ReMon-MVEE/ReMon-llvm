@@ -14794,28 +14794,31 @@ bool Sema::DiagnoseAssignmentResult(AssignConvertType ConvTy,
     MayHaveConvFixit = true;
     break;
   case IncompatiblePointer:
-    // GHUMVEE patch - be very strict about Atomic->Non-Atomic assignments
-    if (SrcType->getPointeeType()->isAtomicType() &&
-        !DstType->getPointeeType()->isAtomicType())
-      DiagKind = diag::err_atomic_to_non_atomic_pointer_assignment;
-    else if (Action == AA_Passing_CFAudited)
-      DiagKind = diag::err_arc_typecheck_convert_incompatible_pointer;
-    else if (SrcType->isFunctionPointerType() &&
-             DstType->isFunctionPointerType())
-      DiagKind = diag::ext_typecheck_convert_incompatible_function_pointer;
-    else
-      DiagKind = diag::ext_typecheck_convert_incompatible_pointer;
+    {
+      // GHUMVEE patch - be very strict about Atomic->Non-Atomic assignments
+      const auto* ST = SrcType->getAs<PointerType>();
+      const auto* DT = DstType->getAs<PointerType>();
+      if (ST && ST->getPointeeType()->isAtomicType() && DT && !DT->getPointeeType()->isAtomicType())
+        DiagKind = diag::err_atomic_to_non_atomic_pointer_assignment;
+      else if (Action == AA_Passing_CFAudited)
+        DiagKind = diag::err_arc_typecheck_convert_incompatible_pointer;
+      else if (SrcType->isFunctionPointerType() &&
+               DstType->isFunctionPointerType())
+        DiagKind = diag::ext_typecheck_convert_incompatible_function_pointer;
+      else
+        DiagKind = diag::ext_typecheck_convert_incompatible_pointer;
 
-    CheckInferredResultType = DstType->isObjCObjectPointerType() &&
-      SrcType->isObjCObjectPointerType();
-    if (Hint.isNull() && !CheckInferredResultType) {
-      ConvHints.tryToFixConversion(SrcExpr, SrcType, DstType, *this);
+      CheckInferredResultType = DstType->isObjCObjectPointerType() &&
+        SrcType->isObjCObjectPointerType();
+      if (Hint.isNull() && !CheckInferredResultType) {
+        ConvHints.tryToFixConversion(SrcExpr, SrcType, DstType, *this);
+      }
+      else if (CheckInferredResultType) {
+        SrcType = SrcType.getUnqualifiedType();
+        DstType = DstType.getUnqualifiedType();
+      }
+      MayHaveConvFixit = true;
     }
-    else if (CheckInferredResultType) {
-      SrcType = SrcType.getUnqualifiedType();
-      DstType = DstType.getUnqualifiedType();
-    }
-    MayHaveConvFixit = true;
     break;
   case IncompatiblePointerSign:
     DiagKind = diag::ext_typecheck_convert_incompatible_pointer_sign;
