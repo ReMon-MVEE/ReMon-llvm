@@ -1,109 +1,67 @@
-# The LLVM Compiler Infrastructure
+# ReMon LLVM
 
-This directory and its subdirectories contain source code for LLVM,
-a toolkit for the construction of highly optimized compilers,
-optimizers, and runtime environments.
+## Introduction
+This repository hosts the LLVM part of the ReMon atomicize compiler. 
+This compiler can prepare multithreaded programs for running inside an MVEE. 
+To do this, it intervenes at four different stages of the building process:
 
-The README briefly describes how to get started with building LLVM.
-For more information on how to contribute to the LLVM project, please
-take a look at the
-[Contributing to LLVM](https://llvm.org/docs/Contributing.html) guide.
+### Front-end (clang)
+The compiler enforces strict typing discipline by:
+- refusing to compile code that discards the `_Atomic` or `volatile` type-qualifier through pointer type casts;
+- refusing to compile code that contains inline asm statements with atomic operations AND control-flow instructions;
+- refusing to compile code that passes less or more than one `_Atomic` or `volatile` qualified operand to inline asm statements containing atomic operations. Passing the same qualified operand multiple times (e.g., once as an input and once as an output operand) is allowed, however!
 
-## Getting Started with the LLVM System
+During clang's code-generation stage, the atomicize compiler translates all operations affecting volatile variables into atomic operations.
 
-Taken from https://llvm.org/docs/GettingStarted.html.
+All of these steps are disabled for variables annotated with the `__attribute__((nonsync))` attribute.
 
-### Overview
+### Back-end (llvm)
+The compiler instruments all atomic (and volatile) operations by adding a call to `mvee_atomic_preop_trampoline` before and a call to `mvee_atomic_postop_trampoline` after every atomic (or volatile) instruction.
+A pointer to atomic (or volatile) variable affected by the instruction is passed to the `mvee_atomic_preop_trampoline` function.
 
-Welcome to the LLVM project!
+### Linking
+The compiler links the instrumented binary to libclang_rt.sync-<arch>.so. 
+This library implements the `mvee_atomic_preop_trampoline` and `mvee_atomic_postop_trampoline` functions.
 
-The LLVM project has multiple components. The core of the project is
-itself called "LLVM". This contains all of the tools, libraries, and header
-files needed to process intermediate representations and converts it into
-object files.  Tools include an assembler, disassembler, bitcode analyzer, and
-bitcode optimizer.  It also contains basic regression tests.
+## Installation
 
-C-like languages use the [Clang](http://clang.llvm.org/) front end.  This
-component compiles C, C++, Objective C, and Objective C++ code into LLVM bitcode
--- and from there into object files, using LLVM.
+### Disclaimer
 
-Other components include:
-the [libc++ C++ standard library](https://libcxx.llvm.org),
-the [LLD linker](https://lld.llvm.org), and more.
+Please keep in mind that this compiler has only been tested on Ubuntu 14.04!
 
-### Getting the Source Code and Building LLVM
+### Building the compiler
 
-The LLVM Getting Started documentation may be out of date.  The [Clang
-Getting Started](http://clang.llvm.org/get_started.html) page might have more
-accurate information.
+```
+mkdir -p build-tree && cd build-tree
+cmake -DCMAKE_BUILD_TYPE=Release -DLLVM_TARGETS_TO_BUILD=X86 -DLLVM_ENABLE_PROJECTS="clang;compiler-rt" ../llvm/
+make -j 8
+```
 
-This is an example workflow and configuration to get and build the LLVM source:
+## Using the compiler
 
-1. Checkout LLVM (including related subprojects like Clang):
+It is fairly straightforward. Just pass `-fatomicize` as a linker and compiler flag. To build nginx, for example, you would do:
 
-     * ``git clone https://github.com/llvm/llvm-project.git``
+```
+./configure --with-threads --with-cc=/path/to/llvm/build-tree/bin/clang --with-cc-opt="-fatomicize" --with-ld-opt="-fatomicize"
+make -j 4
+```
 
-     * Or, on windows, ``git clone --config core.autocrlf=false
-    https://github.com/llvm/llvm-project.git``
+Some projects (e.g. Apache) use a compiler/linker wrapper called libtool.
+Libtool (quite annoyingly) strips any flags it doesn't recognize from the CFLAGS, CXXFLAGS and LDFLAGS. 
+To trick libtool into accepting the "-fatomicize" flag, you can just pass it as a part of the compiler name when you call configure.
+You can do that as follows:
 
-2. Configure and build LLVM and Clang:
+```
+CC="/path/to/llvm/build-tree/bin/clang -fatomicize" CXX="/path/to/llvm/build-tree/bin/clang -fatomicize" LD="/path/to/llvm/build-tree/bin/clang -fatomicize" ./configure
+make -j 4
+```
 
-     * ``cd llvm-project``
+Keep in mind that the resulting binary will be linked to libclang_rt.sync-<arch>.so. 
+If you want to run the binary outside ReMon, you'll have to make sure that libclang_rt.sync is in your LD_LIBRARY_PATH.
+If you want to run the binary in ReMon, you don't have to touch the LD_LIBRARY_PATH as ReMon will do it for you.
 
-     * ``mkdir build``
+## Publications
 
-     * ``cd build``
-
-     * ``cmake -G <generator> [options] ../llvm``
-
-        Some common generators are:
-
-        * ``Ninja`` --- for generating [Ninja](https://ninja-build.org)
-          build files. Most llvm developers use Ninja.
-        * ``Unix Makefiles`` --- for generating make-compatible parallel makefiles.
-        * ``Visual Studio`` --- for generating Visual Studio projects and
-          solutions.
-        * ``Xcode`` --- for generating Xcode projects.
-
-        Some Common options:
-
-        * ``-DLLVM_ENABLE_PROJECTS='...'`` --- semicolon-separated list of the LLVM
-          subprojects you'd like to additionally build. Can include any of: clang,
-          clang-tools-extra, libcxx, libcxxabi, libunwind, lldb, compiler-rt, lld,
-          polly, or debuginfo-tests.
-
-          For example, to build LLVM, Clang, libcxx, and libcxxabi, use
-          ``-DLLVM_ENABLE_PROJECTS="clang;libcxx;libcxxabi"``.
-
-        * ``-DCMAKE_INSTALL_PREFIX=directory`` --- Specify for *directory* the full
-          pathname of where you want the LLVM tools and libraries to be installed
-          (default ``/usr/local``).
-
-        * ``-DCMAKE_BUILD_TYPE=type`` --- Valid options for *type* are Debug,
-          Release, RelWithDebInfo, and MinSizeRel. Default is Debug.
-
-        * ``-DLLVM_ENABLE_ASSERTIONS=On`` --- Compile with assertion checks enabled
-          (default is Yes for Debug builds, No for all other build types).
-
-      * Run your build tool of choice!
-
-        * The default target (i.e. ``ninja`` or ``make``) will build all of LLVM.
-
-        * The ``check-all`` target (i.e. ``ninja check-all``) will run the
-          regression tests to ensure everything is in working order.
-
-        * CMake will generate build targets for each tool and library, and most
-          LLVM sub-projects generate their own ``check-<project>`` target.
-
-        * Running a serial build will be *slow*.  To improve speed, try running a
-          parallel build. That's done by default in Ninja; for ``make``, use
-          ``make -j NNN`` (NNN is the number of parallel jobs, use e.g. number of
-          CPUs you have.)
-
-      * For more information see [CMake](https://llvm.org/docs/CMake.html)
-
-Consult the
-[Getting Started with LLVM](https://llvm.org/docs/GettingStarted.html#getting-started-with-llvm)
-page for detailed information on configuring and compiling LLVM. You can visit
-[Directory Layout](https://llvm.org/docs/GettingStarted.html#directory-layout)
-to learn about the layout of the source code tree.
+[Taming Parallelism in a Multi-Variant Execution Environment](http://ics.uci.edu/~stijnv/Papers/eurosys17-parallelism.pdf)
+Stijn Volckaert, Bart Coppens, Bjorn De Sutter, Koen De Bosschere, Per Larsen, and Michael Franz.
+In 12th European Conference on Computer Systems (EuroSys'17). ACM, 2017.
