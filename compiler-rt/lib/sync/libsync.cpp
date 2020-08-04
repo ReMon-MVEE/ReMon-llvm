@@ -7,3 +7,13 @@ extern "C" __attribute__((visibility("default"))) void mvee_atomic_postop_trampo
 {
 
 }
+
+struct mvee_shm_op_ret {
+  unsigned long val;
+  bool cmp;
+};
+
+extern "C" __attribute__((visibility("default"))) mvee_shm_op_ret mvee_shm_op_trampoline(unsigned char id, bool atomic, void* address, unsigned long size, unsigned long value, unsigned long cmp)
+{
+  return mvee_shm_op_ret();
+}

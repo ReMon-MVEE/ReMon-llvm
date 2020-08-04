@@ -5729,6 +5729,12 @@ void Clang::ConstructJob(Compilation &C, const JobAction &JA,
   if (!StatsFile.empty())
     CmdArgs.push_back(Args.MakeArgString(Twine("-stats-file=") + StatsFile));
 
+  // push the flag to the backend
+  if (const Arg *A = Args.getLastArg(options::OPT_fshm_support)) {
+    StringRef v = A->getValue();
+    CmdArgs.push_back("-mllvm");
+    CmdArgs.push_back(Args.MakeArgString("-shm_support=" + v));
+  }
 
   // push the flag to the backend
   if (Args.hasArg(options::OPT_fatomicize))

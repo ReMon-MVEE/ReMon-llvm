@@ -61,6 +61,7 @@ void initializeGlobalISel(PassRegistry&);
 void initializeTarget(PassRegistry&);
 
 void initializeAtomicizePass(PassRegistry&);
+void initializeShmSupportPass(PassRegistry&);
 void initializeAAEvalLegacyPassPass(PassRegistry&);
 void initializeAAResultsWrapperPassPass(PassRegistry&);
 void initializeADCELegacyPassPass(PassRegistry&);

@@ -142,6 +142,7 @@ add_llvm_component_library(LLVMCodeGen
   ScheduleDAGPrinter.cpp
   ScoreboardHazardRecognizer.cpp
   ShadowStackGCLowering.cpp
+  ShmSupport.cpp
   ShrinkWrap.cpp
   SjLjEHPrepare.cpp
   SlotIndexes.cpp

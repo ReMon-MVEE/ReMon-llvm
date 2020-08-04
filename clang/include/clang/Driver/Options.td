@@ -1211,6 +1211,8 @@ def fno_use_line_directives : Flag<["-"], "fno-use-line-directives">, Group<f_Gr
 
 def fatomicize : Flag<["-"], "fatomicize">, Group<f_Group>, Flags<[CC1Option]>,
   HelpText<"Enforce stronger pointer casting discipline for ReMon">;
+def fshm_support : Joined<["-"], "fshm_support=">, Group<f_Group>, Flags<[DriverOption]>,
+  HelpText<"Enable shared memory support for ReMon"> , MetaVarName<"<file>">;
 def ffreestanding : Flag<["-"], "ffreestanding">, Group<f_Group>, Flags<[CC1Option]>,
   HelpText<"Assert that the compilation takes place in a freestanding environment">;
 def fgnuc_version_EQ : Joined<["-"], "fgnuc-version=">, Group<f_Group>,

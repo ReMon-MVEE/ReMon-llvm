@@ -525,8 +525,8 @@ void tools::gnutools::Linker::ConstructJob(Compilation &C, const JobAction &JA,
   // The profile runtime also needs access to system libraries.
   getToolChain().addProfileRTLibs(Args, CmdArgs);
 
-  // link with libsync if we're compiling with -fatomicize
-  if (Args.hasArg(options::OPT_fatomicize))
+  // link with libsync if we're compiling with a GHUMVEE option
+  if (Args.hasArg(options::OPT_fatomicize) || Args.hasArg(options::OPT_fshm_support))
   {
     CmdArgs.push_back("--as-needed");
     CmdArgs.push_back(ToolChain.getCompilerRTArgString(Args, "sync", ToolChain::FileType::FT_Shared));

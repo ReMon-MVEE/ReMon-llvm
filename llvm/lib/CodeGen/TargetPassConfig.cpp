@@ -742,8 +742,9 @@ void TargetPassConfig::addISelPrepare() {
   if (requiresCodeGenSCCOrder())
     addPass(new DummyCGSCCPass);
 
-  // Register the GHUMVEE Atomicize pass
+  // Register GHUMVEE passes
   addPass(createAtomicizePass());
+  addPass(createShmSupportPass());
 
   // Add both the safe stack and the stack protection passes: each of them will
   // only protect functions that have corresponding attributes.
