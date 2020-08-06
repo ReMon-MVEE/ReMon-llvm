@@ -48,7 +48,7 @@ namespace
 
 
       typedef StringMap<std::set<unsigned>> SourceLocationMap;
-      static const uint64_t TagMask = 0xF000000000000000ULL;
+      static const uint64_t TagMask = 0xFFFF800000000000ULL;
       static char ID;
 
       StringRef getPassName() const override { return "ShmSupport"; }
