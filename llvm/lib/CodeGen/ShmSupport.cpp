@@ -47,7 +47,7 @@ namespace
     }
 
 
-      typedef StringMap<std::set<unsigned>> SourceLocationMap;
+      typedef StringMap<std::set<std::pair<unsigned,unsigned>>> SourceLocationMap;
       static const uint64_t TagMask = 0xFFFF800000000000ULL;
       static char ID;
 
@@ -88,8 +88,8 @@ namespace
     const DiagnosticLocation DL(I.getDebugLoc());
     if (DL.isValid())
     {
-      const auto LineNrs = ShmAccessLocations.lookup(DL.getAbsolutePath());
-      if (LineNrs.find(DL.getLine()) != LineNrs.end())
+      const auto Locations = ShmAccessLocations.lookup(DL.getAbsolutePath());
+      if (Locations.find(std::pair<unsigned, unsigned>(DL.getLine(), DL.getColumn())) != Locations.end())
         return true;
     }
 
@@ -108,15 +108,18 @@ namespace
     while (!Line.is_at_end())
     {
       // Parse the line
-      size_t SplitPos = Line->find(':');
+      llvm::SmallVector<llvm::StringRef, 3> Tokens;
+      Line->split(Tokens, ':');
+      unsigned ColumnNr;
       unsigned LineNr;
-      StringRef FileName = Line->substr(0, SplitPos);
-      if (Line->substr(SplitPos +1).getAsInteger(0, LineNr))
+      if (Tokens[1].getAsInteger(0, LineNr))
+        return;
+      if (Tokens[2].getAsInteger(0, ColumnNr))
         return;
 
       // Add the location
-      auto& LineNrs = ShmAccessLocations[FileName];
-      LineNrs.insert(LineNr);
+      auto& F = ShmAccessLocations[Tokens[0]];
+      F.emplace(LineNr, ColumnNr);
 
       // Next
       Line++;
