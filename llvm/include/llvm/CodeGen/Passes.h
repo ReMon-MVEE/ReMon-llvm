@@ -468,7 +468,7 @@ namespace llvm {
 
   // GHUMVEE passes
   ModulePass *createAtomicizePass();
-  ModulePass *createShmSupportPass();
+  FunctionPass *createShmSupportPass();
 } // End llvm namespace
 
 #endif

@@ -4,9 +4,11 @@
 
 // LLVM headers
 #include "llvm/ADT/StringMap.h"
+#include "llvm/IR/BasicBlock.h"
 #include "llvm/IR/DataLayout.h"
 #include "llvm/IR/DerivedTypes.h"
 #include "llvm/IR/DiagnosticInfo.h"
+#include "llvm/IR/Function.h"
 #include "llvm/IR/IRBuilder.h"
 #include "llvm/IR/InlineAsm.h"
 #include "llvm/IR/InstVisitor.h"
@@ -38,49 +40,28 @@ namespace
   llvm::cl::opt<std::string> ShmSupportList("shm_support",
       llvm::cl::desc("List of instructions that access shared memory and need MVEE support"));
 
-  class ShmSupport : public ModulePass, public InstVisitor<ShmSupport>
+  class ShmSupport : public FunctionPass
   {
     public:
-      ShmSupport() : ModulePass(ID)
+      ShmSupport() : FunctionPass(ID)
     {
       initializeShmSupportPass(*PassRegistry::getPassRegistry());
     }
-
 
       typedef StringMap<std::set<std::pair<unsigned,unsigned>>> SourceLocationMap;
       static const uint64_t TagMask = 0xFFFF800000000000ULL;
       static char ID;
 
       StringRef getPassName() const override { return "ShmSupport"; }
-      bool runOnModule(Module& M) override;
-
-      void visitAtomicCmpXchgInst(AtomicCmpXchgInst& I)
-      {
-        if (accessesSharedMemory(I))
-          ShmInstructions.push_back(&I);
-      }
-      void visitAtomicRMWInst(AtomicRMWInst& I)
-      {
-        if (accessesSharedMemory(I))
-          ShmInstructions.push_back(&I);
-      }
-      void visitLoadInst(LoadInst& I)
-      {
-        if (accessesSharedMemory(I))
-          ShmInstructions.push_back(&I);
-      }
-      void visitStoreInst(StoreInst& I)
-      {
-        if (accessesSharedMemory(I))
-          ShmInstructions.push_back(&I);
-      }
+      bool doInitialization(Module &M) override;
+      bool runOnFunction(Function& M) override;
 
     private:
+      Function* ShmAccessFunc;
       SourceLocationMap ShmAccessLocations;
-      std::vector<Instruction*> ShmInstructions;
       bool accessesSharedMemory(const Instruction& I) const;
       void readShmAccessedLocations(const std::string);
-
+      auto getShmInstructions(Function& F);
   };
 
   bool ShmSupport::accessesSharedMemory(const Instruction& I) const
@@ -126,8 +107,52 @@ namespace
     }
   }
 
-  bool ShmSupport::runOnModule(Module& M)
+  auto ShmSupport::getShmInstructions(Function& F)
   {
+    SmallPtrSet<Instruction *, 32> ShmInstructions;
+    for (BasicBlock& BB : F)
+    {
+      for (Instruction& I : BB)
+      {
+        if (accessesSharedMemory(I))
+        {
+          switch (I.getOpcode())
+          {
+            // Memory operations we wrap
+            case Instruction::Load:
+            case Instruction::Store:
+            case Instruction::AtomicRMW:
+            case Instruction::AtomicCmpXchg:
+              {
+                ShmInstructions.insert(&I);
+                break;
+              }
+              // Memory operations we do **not** wrap
+            case Instruction::Alloca:
+            case Instruction::Fence:
+            case Instruction::GetElementPtr:
+              break;
+            default:
+              {
+                // Don't handle these instructions
+                if (I.isCast())
+                  break;
+
+                // All the other instructions: If they Use a LoadInst, wrap it
+                for (Value* V : I.operand_values())
+                  if (LoadInst *LI = dyn_cast<LoadInst>(V))
+                    ShmInstructions.insert(LI);
+                break;
+              }
+          }
+        }
+      }
+    }
+
+    return ShmInstructions;
+  }
+
+  bool ShmSupport::doInitialization(Module &M) {
     if (ShmSupportList.empty())
       return false;
 
@@ -144,17 +169,25 @@ namespace
     StructType* ShmAccessRetTy = StructType::create({Type::getInt64Ty(Context), Type::getInt1Ty(Context)}, "struct.mvee_shm_op_ret");
     FunctionType* ShmAccessTy = FunctionType::get(ShmAccessRetTy,
         {Type::getInt8Ty(Context), Type::getInt1Ty(Context), Type::getInt64PtrTy(Context), Type::getInt64Ty(Context), Type::getInt64Ty(Context), Type::getInt64Ty(Context)}, false);
-    Function* ShmAccessFunc = Function::Create(ShmAccessTy, GlobalValue::LinkageTypes::ExternalLinkage, "mvee_shm_op_trampoline", &M);
+    ShmAccessFunc = Function::Create(ShmAccessTy, GlobalValue::LinkageTypes::ExternalLinkage, "mvee_shm_op_trampoline", &M);
+    return true;
+  }
+
+  bool ShmSupport::runOnFunction(Function& F)
+  {
+    if (ShmAccessLocations.empty())
+      return false;
 
     // Gather all instructions accessing shared memory
-    visit(M);
+    auto ShmInstructions = getShmInstructions(F);
     if (ShmInstructions.empty())
       return false;
 
-    const DataLayout &DL = M.getDataLayout();
+    auto& Context = F.getContext();
     for (Instruction* ShmInst : ShmInstructions)
     {
       // Gather information on instruction
+      const DataLayout &DL = ShmInst->getModule()->getDataLayout();
       Value* Addr = nullptr;
       Value* Cmp = nullptr;
       unsigned ID = -1;
@@ -243,7 +276,7 @@ INITIALIZE_PASS(ShmSupport, "ShmSupport", "Rewrite all instructions accessing sh
 
 namespace llvm
 {
-  ModulePass * createShmSupportPass()
+  FunctionPass * createShmSupportPass()
   {
     return new ShmSupport();
   }
