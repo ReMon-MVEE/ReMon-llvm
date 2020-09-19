@@ -160,10 +160,6 @@ namespace
     if (ShmAccessLocations.empty())
       return false;
 
-    errs().changeColor(raw_ostream::GREEN);
-    errs() << "Rewriting instructions that access shared memory...\n";
-    errs().resetColor();
-
     // mvee_shm_op_ret mvee_shm_op_trampoline(unsigned char id, bool atomic, void* address, unsigned long size, unsigned long value, unsigned long cmp)
     auto& Context = M.getContext();
     StructType* ShmAccessRetTy = StructType::create({Type::getInt64Ty(Context), Type::getInt1Ty(Context)}, "struct.mvee_shm_op_ret");
