@@ -121,12 +121,13 @@ namespace
             // Memory operations we wrap
             case Instruction::Load:
             case Instruction::Store:
-            case Instruction::AtomicRMW:
-            case Instruction::AtomicCmpXchg:
               {
                 ShmInstructions.insert(&I);
                 break;
               }
+            // Memory operations we might wrap, but disabled for now
+            case Instruction::AtomicRMW:
+            case Instruction::AtomicCmpXchg:
               // Memory operations we do **not** wrap
             case Instruction::Alloca:
             case Instruction::Fence:
