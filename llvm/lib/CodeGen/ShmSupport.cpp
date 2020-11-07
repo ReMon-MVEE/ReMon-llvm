@@ -180,6 +180,10 @@ namespace
     if (ShmInstructions.empty())
       return false;
 
+    errs().changeColor(raw_ostream::GREEN);
+    errs() << "Rewriting " << ShmInstructions.size() << " instructions that access shared memory...\n";
+    errs().resetColor();
+
     auto& Context = F.getContext();
     for (Instruction* ShmInst : ShmInstructions)
     {
