@@ -136,10 +136,6 @@ namespace
               break;
             default:
               {
-                // Don't handle these instructions
-                if (I.isCast())
-                  break;
-
                 // All the other instructions: If they Use a LoadInst, wrap it
                 for (Value* V : I.operand_values())
                   if (LoadInst *LI = dyn_cast<LoadInst>(V))
