@@ -122,7 +122,8 @@ namespace
             case Instruction::Load:
             case Instruction::Store:
               {
-                ShmInstructions.insert(&I);
+                if (!I.isAtomic())
+                  ShmInstructions.insert(&I);
                 break;
               }
             // Memory operations we might wrap, but disabled for now
@@ -142,7 +143,10 @@ namespace
                 // All the other instructions: If they Use a LoadInst, wrap it
                 for (Value* V : I.operand_values())
                   if (LoadInst *LI = dyn_cast<LoadInst>(V))
-                    ShmInstructions.insert(LI);
+                  {
+                    if (!LI->isAtomic())
+                      ShmInstructions.insert(LI);
+                  }
                 break;
               }
           }
