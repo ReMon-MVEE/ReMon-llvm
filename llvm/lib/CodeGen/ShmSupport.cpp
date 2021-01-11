@@ -121,15 +121,11 @@ namespace
             // Memory operations we wrap
             case Instruction::Load:
             case Instruction::Store:
-              {
-                if (!I.isAtomic())
-                  ShmInstructions.insert(&I);
-                break;
-              }
-            // Memory operations we might wrap, but disabled for now
             case Instruction::AtomicRMW:
             case Instruction::AtomicCmpXchg:
-              // Memory operations we do **not** wrap
+              ShmInstructions.insert(&I);
+              break;
+            // Memory operations we do **not** wrap
             case Instruction::Alloca:
             case Instruction::Fence:
             case Instruction::GetElementPtr:
@@ -139,10 +135,7 @@ namespace
                 // All the other instructions: If they Use a LoadInst, wrap it
                 for (Value* V : I.operand_values())
                   if (LoadInst *LI = dyn_cast<LoadInst>(V))
-                  {
-                    if (!LI->isAtomic())
-                      ShmInstructions.insert(LI);
-                  }
+                    ShmInstructions.insert(LI);
                 break;
               }
           }
