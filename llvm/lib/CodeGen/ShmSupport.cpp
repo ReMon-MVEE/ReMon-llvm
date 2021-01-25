@@ -198,19 +198,19 @@ namespace
         ID = 1;
         Size = DL.getTypeStoreSize(SI->getValueOperand()->getType());
         Val = SI->getValueOperand();
-      } else if (AtomicRMWInst *RMW = dyn_cast<AtomicRMWInst>(ShmInst)) {
-        Addr = RMW->getPointerOperand();
-        ID = 2 + ((RMW->getOperation() - AtomicRMWInst::BinOp::FIRST_BINOP) << 2);
-        RetType = RMW->getType();
-        Size = DL.getTypeStoreSize(RMW->getValOperand()->getType());
-        Val = RMW->getValOperand();
       } else if (AtomicCmpXchgInst *XCHG = dyn_cast<AtomicCmpXchgInst>(ShmInst)) {
         Addr = XCHG->getPointerOperand();
         Cmp = XCHG->getCompareOperand();
-        ID = 3;
+        ID = 2;
         RetType = XCHG->getType();
         Size = DL.getTypeStoreSize(XCHG->getCompareOperand()->getType());
         Val = XCHG->getNewValOperand();
+      } else if (AtomicRMWInst *RMW = dyn_cast<AtomicRMWInst>(ShmInst)) {
+        Addr = RMW->getPointerOperand();
+        ID = 3 + (RMW->getOperation() - AtomicRMWInst::BinOp::FIRST_BINOP);
+        RetType = RMW->getType();
+        Size = DL.getTypeStoreSize(RMW->getValOperand()->getType());
+        Val = RMW->getValOperand();
       } else if (auto* CI = dyn_cast<CallInst>(ShmInst)) {
         // Inline asm
         // Intrinsics
