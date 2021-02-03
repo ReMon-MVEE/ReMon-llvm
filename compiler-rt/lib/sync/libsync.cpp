@@ -13,7 +13,7 @@ struct mvee_shm_op_ret {
   bool cmp;
 };
 
-extern "C" __attribute__((visibility("default"))) mvee_shm_op_ret mvee_shm_op_trampoline(unsigned char id, bool atomic, void* address, unsigned long size, unsigned long value, unsigned long cmp)
+extern "C" __attribute__((visibility("default"))) mvee_shm_op_ret mvee_shm_op_trampoline(unsigned char id, void* address, unsigned long size, unsigned long value, unsigned long cmp)
 {
   return mvee_shm_op_ret();
 }

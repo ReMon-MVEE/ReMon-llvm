@@ -158,7 +158,7 @@ namespace
     auto& Context = M.getContext();
     StructType* ShmAccessRetTy = StructType::create({Type::getInt64Ty(Context), Type::getInt1Ty(Context)}, "struct.mvee_shm_op_ret");
     FunctionType* ShmAccessTy = FunctionType::get(ShmAccessRetTy,
-        {Type::getInt8Ty(Context), Type::getInt1Ty(Context), Type::getInt64PtrTy(Context), Type::getInt64Ty(Context), Type::getInt64Ty(Context), Type::getInt64Ty(Context)}, false);
+        {Type::getInt8Ty(Context), Type::getInt64PtrTy(Context), Type::getInt64Ty(Context), Type::getInt64Ty(Context), Type::getInt64Ty(Context)}, false);
     ShmAccessFunc = Function::Create(ShmAccessTy, GlobalValue::LinkageTypes::ExternalLinkage, "mvee_shm_op_trampoline", &M);
     return true;
   }
@@ -190,24 +190,24 @@ namespace
       Value* Val = nullptr;
       if (LoadInst *LI = dyn_cast<LoadInst>(ShmInst)) {
         Addr = LI->getPointerOperand();
-        ID = 0;
+        ID = ShmInst->isAtomic() ? 2 : 0;
         Size = DL.getTypeStoreSize(LI->getType());
         RetType = LI->getType();
       } else if (StoreInst *SI = dyn_cast<StoreInst>(ShmInst)) {
         Addr = SI->getPointerOperand();
-        ID = 1;
+        ID = ShmInst->isAtomic() ? 3 : 1;
         Size = DL.getTypeStoreSize(SI->getValueOperand()->getType());
         Val = SI->getValueOperand();
       } else if (AtomicCmpXchgInst *XCHG = dyn_cast<AtomicCmpXchgInst>(ShmInst)) {
         Addr = XCHG->getPointerOperand();
         Cmp = XCHG->getCompareOperand();
-        ID = 2;
+        ID = 4;
         RetType = XCHG->getType();
         Size = DL.getTypeStoreSize(XCHG->getCompareOperand()->getType());
         Val = XCHG->getNewValOperand();
       } else if (AtomicRMWInst *RMW = dyn_cast<AtomicRMWInst>(ShmInst)) {
         Addr = RMW->getPointerOperand();
-        ID = 3 + (RMW->getOperation() - AtomicRMWInst::BinOp::FIRST_BINOP);
+        ID = 5 + (RMW->getOperation() - AtomicRMWInst::BinOp::FIRST_BINOP);
         RetType = RMW->getType();
         Size = DL.getTypeStoreSize(RMW->getValOperand()->getType());
         Val = RMW->getValOperand();
@@ -227,9 +227,8 @@ namespace
       assert(cast<BranchInst>(ShmAccessTerm)->isUnconditional());
 
       // Arguments:
-      Value* Args[6] = {
+      Value* Args[5] = {
         ConstantInt::get(Type::getInt8Ty(Context), ID),
-        ConstantInt::get(Type::getInt1Ty(Context), ShmInst->isAtomic()),
         Addr,
         ConstantInt::get(Type::getInt64Ty(Context), Size),
         Val ? Val : ConstantInt::get(Type::getInt64Ty(Context), 0),
