@@ -216,6 +216,10 @@ namespace
         // Intrinsics
       }
 
+      /* Don't support operations of 16-byte size (or worse!) */
+      if (Size > 8)
+        continue;
+
       IRBuilder<> IRB(ShmInst);
 
       // If clause
