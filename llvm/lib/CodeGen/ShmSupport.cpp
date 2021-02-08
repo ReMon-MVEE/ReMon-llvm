@@ -178,10 +178,10 @@ namespace
     errs().resetColor();
 
     auto& Context = F.getContext();
+    const DataLayout &DL = F.getParent()->getDataLayout();
     for (Instruction* ShmInst : ShmInstructions)
     {
       // Gather information on instruction
-      const DataLayout &DL = ShmInst->getModule()->getDataLayout();
       Value* Addr = nullptr;
       Value* Cmp = nullptr;
       unsigned ID = -1;
