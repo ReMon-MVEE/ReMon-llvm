@@ -211,9 +211,6 @@ namespace
         RetType = RMW->getType();
         Size = DL.getTypeStoreSize(RMW->getValOperand()->getType());
         Val = RMW->getValOperand();
-      } else if (auto* CI = dyn_cast<CallInst>(ShmInst)) {
-        // Inline asm
-        // Intrinsics
       }
 
       /* Don't support operations of 16-byte size (or worse!) */
