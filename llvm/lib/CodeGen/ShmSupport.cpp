@@ -173,9 +173,9 @@ namespace
     if (ShmInstructions.empty())
       return false;
 
-    errs().changeColor(raw_ostream::GREEN);
-    errs() << "Rewriting " << ShmInstructions.size() << " instructions that access shared memory...\n";
-    errs().resetColor();
+    outs().changeColor(raw_ostream::GREEN);
+    outs() << "Rewriting " << ShmInstructions.size() << " instructions that access shared memory...\n";
+    outs().resetColor();
 
     auto& Context = F.getContext();
     const DataLayout &DL = F.getParent()->getDataLayout();

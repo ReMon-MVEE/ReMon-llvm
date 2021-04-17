@@ -188,24 +188,24 @@ namespace
                                        {Type::getInt8Ty(Context)}, false);
 		PostopFunc = Function::Create(PostopType, GlobalValue::LinkageTypes::ExternalLinkage, "mvee_atomic_postop_trampoline", &M);
 
-		errs().changeColor(raw_ostream::GREEN);
-		errs() << "Wrapping atomic instructions...\n";
-		errs().resetColor();
+		outs().changeColor(raw_ostream::GREEN);
+		outs() << "Wrapping atomic instructions...\n";
+		outs().resetColor();
 
 		WrapAtomicsVisitor V(this);
 		V.visit(M);
 
 		NumAtomicTotal = NumAtomicType1 + NumAtomicType2 + NumAtomicType3;		
-		errs().changeColor(raw_ostream::YELLOW);
-		errs() << "All Done!";
+		outs().changeColor(raw_ostream::YELLOW);
+		outs() << "All Done!";
 		if (NumAtomicTotal)
-			errs() << " Found atomics [type1, type2, type3, tot]: ["
+			outs() << " Found atomics [type1, type2, type3, tot]: ["
 			   << NumAtomicType1 << ", "
 			   << NumAtomicType2 << ", "
 			   << NumAtomicType3 << ", "
 			   << NumAtomicTotal << "]";
-		errs() << "\n";
-		errs().resetColor();
+		outs() << "\n";
+		outs().resetColor();
 
 		return true;
 	}
