@@ -21,7 +21,7 @@ set(SYNC_CFLAGS ${SANITIZER_COMMON_CFLAGS})
 foreach(arch ${SYNC_SUPPORTED_ARCH})
   if(CAN_TARGET_${arch})
     add_compiler_rt_runtime(clang_rt.sync
-     SHARED
+     STATIC
      ARCHS ${arch}
      SOURCES ${${arch}_SOURCES}
      CFLAGS ${SYNC_CFLAGS}

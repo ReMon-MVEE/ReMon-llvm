@@ -154,12 +154,13 @@ namespace
     if (ShmAccessLocations.empty())
       return false;
 
-    // mvee_shm_op_ret mvee_shm_op_trampoline(unsigned char id, bool atomic, void* address, unsigned long size, unsigned long value, unsigned long cmp)
+    // mvee_shm_op_ret mvee_shm_op(unsigned char id, bool atomic, void* address, unsigned long size, unsigned long value, unsigned long cmp)
     auto& Context = M.getContext();
     StructType* ShmAccessRetTy = StructType::create({Type::getInt64Ty(Context), Type::getInt1Ty(Context)}, "struct.mvee_shm_op_ret");
     FunctionType* ShmAccessTy = FunctionType::get(ShmAccessRetTy,
         {Type::getInt8Ty(Context), Type::getInt64PtrTy(Context), Type::getInt64Ty(Context), Type::getInt64Ty(Context), Type::getInt64Ty(Context)}, false);
-    ShmAccessFunc = Function::Create(ShmAccessTy, GlobalValue::LinkageTypes::ExternalLinkage, "mvee_shm_op_trampoline", &M);
+    ShmAccessFunc = Function::Create(ShmAccessTy, GlobalValue::LinkageTypes::ExternalWeakLinkage, "mvee_shm_op", &M);
+
     return true;
   }
 

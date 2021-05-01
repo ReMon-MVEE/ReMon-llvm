@@ -526,11 +526,11 @@ void tools::gnutools::Linker::ConstructJob(Compilation &C, const JobAction &JA,
   getToolChain().addProfileRTLibs(Args, CmdArgs);
 
   // link with libsync if we're compiling with a GHUMVEE option
-  if (Args.hasArg(options::OPT_fatomicize) || Args.hasArg(options::OPT_fshm_support))
+  if (Args.hasArg(options::OPT_fatomicize))
   {
-    CmdArgs.push_back("--as-needed");
-    CmdArgs.push_back(ToolChain.getCompilerRTArgString(Args, "sync", ToolChain::FileType::FT_Shared));
-    CmdArgs.push_back("--no-as-needed");
+    CmdArgs.push_back("--whole-archive");
+    CmdArgs.push_back(ToolChain.getCompilerRTArgString(Args, "sync", ToolChain::FileType::FT_Static));
+    CmdArgs.push_back("--no-whole-archive");
   }
 
   if (D.CCCIsCXX() &&

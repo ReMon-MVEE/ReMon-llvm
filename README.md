@@ -20,8 +20,8 @@ The compiler instruments all atomic (and volatile) operations by adding a call t
 A pointer to atomic (or volatile) variable affected by the instruction is passed to the `mvee_atomic_preop_trampoline` function.
 
 ### Linking
-The compiler links the instrumented binary to libclang_rt.sync-<arch>.so. 
-This library implements the `mvee_atomic_preop_trampoline` and `mvee_atomic_postop_trampoline` functions.
+The compiler statically links the instrumented binary with the libclang_rt.sync-<arch>.a archive.
+This archive implements the `mvee_atomic_preop_trampoline` and `mvee_atomic_postop_trampoline` functions, referencing weak symbols defined in ReMon-glibc.
 
 ## Installation
 
@@ -55,10 +55,6 @@ You can do that as follows:
 CC="/path/to/llvm/build-tree/bin/clang -fatomicize" CXX="/path/to/llvm/build-tree/bin/clang -fatomicize" LD="/path/to/llvm/build-tree/bin/clang -fatomicize" ./configure
 make -j 4
 ```
-
-Keep in mind that the resulting binary will be linked to libclang_rt.sync-<arch>.so. 
-If you want to run the binary outside ReMon, you'll have to make sure that libclang_rt.sync is in your LD_LIBRARY_PATH.
-If you want to run the binary in ReMon, you don't have to touch the LD_LIBRARY_PATH as ReMon will do it for you.
 
 ## Publications
 
